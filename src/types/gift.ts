@@ -20,7 +20,8 @@ export interface GiftData {
   soundEnabled: boolean;
   soundTune: SoundTune;
   message: string;
-  photoUrl?: string; // Base64 data URI
+  stickerId?: number; // 0..15 curated animated sticker / 3D avatar ID
+  photoUrl?: string;  // Legacy Base64 or CDN URL (backwards compatible)
   createdAt?: number;
 }
 
@@ -34,7 +35,8 @@ export interface EncodedGiftPayload {
   snd: number;       // 1 if soundEnabled else 0
   sndT: SoundTune;   // soundTune
   m: string;         // message
-  img?: string;      // photoUrl
-  v: number;         // version (1)
+  stk?: number;      // stickerId (0..15)
+  img?: string;      // legacy photoUrl
+  v: number;         // version (1 or 2)
   t?: number;        // timestamp
 }

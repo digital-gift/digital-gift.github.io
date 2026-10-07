@@ -4,6 +4,7 @@ import { getTranslations } from '../i18n/translations';
 import { GiftBox3D } from './GiftBox3D';
 import { launchConfetti } from '../utils/confettiLauncher';
 import { playCelebrationSound } from '../utils/audio';
+import { AnimatedSticker } from './AnimatedSticker';
 import { Sparkles, Volume2, VolumeX, RotateCcw, Heart, Gift, Calendar } from 'lucide-react';
 
 interface RecipientTheaterProps {
@@ -144,17 +145,26 @@ export const RecipientTheater: React.FC<RecipientTheaterProps> = ({
               </h2>
             </div>
 
-            {/* Attached Photo if present */}
-            {gift.photoUrl && (
+            {/* Animated Celebration Sticker / Avatar */}
+            {typeof gift.stickerId === 'number' && (
               <div className="my-5 flex justify-center">
-                <div className="p-2 bg-white dark:bg-brand-darkCard rounded-2xl shadow-md border border-gray-100 dark:border-brand-darkBorder rotate-[-1deg] hover:rotate-0 transition-transform">
+                <div className="relative p-4 sm:p-5 bg-gradient-to-b from-brand-yellow/30 via-white to-brand-mint/20 dark:from-brand-darkCard dark:via-brand-darkSurface dark:to-brand-deep/30 rounded-3xl shadow-lg border-2 border-brand-mint/50 dark:border-brand-darkBorder flex flex-col items-center">
+                  <AnimatedSticker id={gift.stickerId} size="lg" animate={true} />
+                </div>
+              </div>
+            )}
+
+            {/* Attached Photo if present (legacy compatibility) */}
+            {gift.stickerId === undefined && gift.photoUrl && (
+              <div className="my-5 flex justify-center">
+                <div className="p-2.5 bg-white dark:bg-brand-darkCard rounded-2xl shadow-md border border-gray-100 dark:border-brand-darkBorder rotate-[-1deg] hover:rotate-0 transition-transform">
                   <img
                     src={gift.photoUrl}
                     alt={`Celebration photo for ${gift.recipientName}`}
-                    width="176"
-                    height="176"
+                    width="208"
+                    height="208"
                     decoding="async"
-                    className="w-36 h-36 sm:w-44 sm:h-44 object-cover rounded-xl"
+                    className="w-40 h-40 sm:w-52 sm:h-52 object-cover rounded-xl shadow-sm"
                     loading="lazy"
                   />
                 </div>

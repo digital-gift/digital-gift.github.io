@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import type { GiftData, SupportedLocale, EventType, BoxColor, RibbonColor, ConfettiStyle, SoundTune } from '../types/gift';
 import { getTranslations } from '../i18n/translations';
 import { GiftBox3D } from './GiftBox3D';
-import { compressImageFile } from '../utils/imageCompressor';
+import { AnimatedSticker, STICKERS_CATALOG } from './AnimatedSticker';
 import { playCelebrationSound } from '../utils/audio';
 import { encodeGiftToHash, generateGiftUrl } from '../utils/codec';
 import {
@@ -15,15 +15,13 @@ import {
   Share2,
   Volume2,
   VolumeX,
-  Upload,
-  X,
   Eye,
   RefreshCw,
-  PartyPopper,
   Music,
   Heart,
   Palette,
   MessageSquare,
+  Smile,
 } from 'lucide-react';
 
 interface CreatorWizardProps {
@@ -60,11 +58,9 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
 
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [copied, setCopied] = useState<boolean>(false);
-  const [isCompressing, setIsCompressing] = useState<boolean>(false);
-  const [imageSize, setImageSize] = useState<number | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [stickerCategory, setStickerCategory] = useState<string>('all');
 
-  // Form State
+  // Form State - defaults to 🎂 Birthday Cake (0)
   const [giftData, setGiftData] = useState<GiftData>({
     recipientName: '',
     senderName: '',
@@ -75,7 +71,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
     soundEnabled: true,
     soundTune: 'birthday',
     message: '',
-    photoUrl: undefined,
+    stickerId: 0,
   });
 
   const handleNext = () => {
@@ -90,31 +86,6 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setIsCompressing(true);
-      const result = await compressImageFile(file);
-      setGiftData((prev) => ({ ...prev, photoUrl: result.dataUrl }));
-      setImageSize(result.sizeBytes);
-    } catch (err) {
-      console.error(err);
-      alert('Could not process this image. Please try another one.');
-    } finally {
-      setIsCompressing(false);
-    }
-  };
-
-  const handleRemovePhoto = () => {
-    setGiftData((prev) => ({ ...prev, photoUrl: undefined }));
-    setImageSize(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
   const handleTestSound = (tune: SoundTune) => {
     playCelebrationSound(tune, true);
   };
@@ -125,35 +96,26 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
       setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
-    } catch {
-      // Fallback
-      prompt('Copy this link:', shareUrl);
+      setTimeout(() => setCopied(false), 2500);
+    } catch (err) {
+      console.error('Failed to copy', err);
     }
   };
 
-  const handleWhatsAppShare = async () => {
-    const text = `🎁 ${giftData.recipientName}, someone sent you a special virtual surprise gift! Open it here: ${shareUrl}`;
-
-    // On mobile devices with native share capabilities, use Web Share API
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      try {
-        await navigator.share({
-          title: `Special Gift for ${giftData.recipientName}`,
-          text: `🎁 ${giftData.recipientName}, you received a special virtual surprise gift!`,
-          url: shareUrl,
-        });
-        return;
-      } catch (err) {
-        // Fallback to direct URL if user dismissed native share
-      }
-    }
-
-    // Direct WhatsApp URL
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    window.open(whatsappUrl, '_blank');
+  const handleWhatsAppShare = () => {
+    const text = `🎁 A special surprise gift has been made for you! Tap to open: ${shareUrl}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const handleReset = () => {
@@ -167,18 +129,22 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
       soundEnabled: true,
       soundTune: 'birthday',
       message: '',
-      photoUrl: undefined,
+      stickerId: 0,
     });
     setCurrentStep(1);
-    setImageSize(null);
+    setCopied(false);
   };
 
+  const filteredStickers = stickerCategory === 'all'
+    ? STICKERS_CATALOG
+    : STICKERS_CATALOG.filter((s) => s.category === stickerCategory);
+
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-8">
-      {/* Header Introduction */}
+    <div className="w-full max-w-5xl mx-auto px-4 py-8">
+      {/* Header Banner */}
       <div className="text-center space-y-3 mb-8">
-        <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-brand-yellow/60 dark:bg-brand-darkSurface border border-brand-yellow dark:border-brand-darkBorder text-brand-deep dark:text-brand-yellow text-xs sm:text-sm font-bold shadow-sm">
-          <Sparkles className="w-3.5 h-3.5 text-brand-deep dark:text-brand-yellow" />
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-yellow/80 dark:bg-brand-darkCard text-brand-deep dark:text-brand-yellow text-xs font-bold tracking-wide uppercase shadow-xs">
+          <Sparkles className="w-3.5 h-3.5" />
           <span>{t.wizard.badge}</span>
         </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">
@@ -234,7 +200,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
 
       {/* Main Grid: Live Preview & Step Forms */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-        {/* Left Column: Real-time Box Preview (Sticky on desktop only, static on mobile & tablet) */}
+        {/* Left Column: Real-time Box Preview */}
         <div className="lg:col-span-5 flex flex-col items-center bg-white dark:bg-brand-darkSurface rounded-3xl p-5 sm:p-6 lg:p-8 shadow-xl border border-gray-100 dark:border-brand-darkBorder static lg:sticky lg:top-24 z-0 lg:z-10">
           <div className="flex items-center justify-between w-full mb-4">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
@@ -255,13 +221,23 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
             />
           </div>
 
-          <div className="mt-4 text-center">
+          <div className="mt-4 text-center w-full">
             <div className="text-sm font-bold text-gray-800 dark:text-gray-200">
               {giftData.recipientName ? `For: ${giftData.recipientName}` : 'For: Someone Special'}
             </div>
             {giftData.senderName && (
-              <div className="text-xs text-gray-500 dark:text-gray-400">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 From: {giftData.senderName}
+              </div>
+            )}
+
+            {/* Selected Animated Sticker Pill in Preview */}
+            {typeof giftData.stickerId === 'number' && (
+              <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-brand-yellow/30 dark:bg-brand-darkCard border border-brand-yellow/60 dark:border-brand-darkBorder shadow-xs">
+                <AnimatedSticker id={giftData.stickerId} size="sm" animate={true} />
+                <span className="text-xs font-bold text-brand-deep dark:text-brand-mint">
+                  {STICKERS_CATALOG[giftData.stickerId]?.name || 'Animated Mascot'}
+                </span>
               </div>
             )}
           </div>
@@ -316,12 +292,12 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
                 />
               </div>
 
-              {/* Event Occasion */}
+              {/* Event Type */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
                   {t.wizard.eventTypeLabel}
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2.5">
                   {EVENT_OPTIONS.map((event) => {
                     const isSelected = giftData.eventType === event;
                     return (
@@ -329,7 +305,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
                         type="button"
                         key={event}
                         onClick={() => setGiftData({ ...giftData, eventType: event })}
-                        className={`p-3 rounded-xl border text-left font-medium text-sm transition-all flex items-center justify-between ${
+                        className={`p-3 rounded-xl border text-sm font-semibold transition-all text-left flex items-center justify-between ${
                           isSelected
                             ? 'border-brand-deep bg-brand-yellow/30 dark:bg-brand-darkCard text-brand-deep dark:text-brand-mint ring-2 ring-brand-deep'
                             : 'border-gray-200 dark:border-brand-darkBorder bg-white dark:bg-brand-darkCard text-gray-700 dark:text-gray-300 hover:border-brand-muted'
@@ -358,12 +334,12 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
                 </p>
               </div>
 
-              {/* Box Color Swatches */}
+              {/* Box Color */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                  {t.wizard.boxColorLabel}: <span className="text-brand-deep dark:text-brand-mint font-bold">{t.boxColors[giftData.boxColor]}</span>
+                  {t.wizard.boxColorLabel}
                 </label>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2.5">
                   {BOX_OPTIONS.map((color) => {
                     const isSelected = giftData.boxColor === color;
                     return (
@@ -371,43 +347,47 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
                         type="button"
                         key={color}
                         onClick={() => setGiftData({ ...giftData, boxColor: color })}
-                        title={t.boxColors[color]}
-                        className={`w-10 h-10 rounded-full transition-all flex items-center justify-center shadow-md ${
+                        className={`group relative flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all ${
                           isSelected
-                            ? 'ring-4 ring-offset-2 ring-brand-deep dark:ring-offset-brand-darkSurface scale-110'
-                            : 'hover:scale-105 opacity-80 hover:opacity-100'
+                            ? 'border-brand-deep bg-brand-yellow/30 dark:bg-brand-darkCard text-brand-deep dark:text-brand-mint ring-2 ring-brand-deep'
+                            : 'border-gray-200 dark:border-brand-darkBorder bg-white dark:bg-brand-darkCard text-gray-700 dark:text-gray-300 hover:border-brand-muted'
                         }`}
-                        style={{ backgroundColor: BOX_HEX[color] }}
                       >
-                        {isSelected && <Check className="w-5 h-5 text-white drop-shadow" />}
+                        <span
+                          className="w-4 h-4 rounded-full shadow-inner border border-black/10"
+                          style={{ backgroundColor: BOX_HEX[color] }}
+                        />
+                        <span>{t.boxColors[color]}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Ribbon Color Swatches */}
+              {/* Ribbon Color */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                  {t.wizard.ribbonColorLabel}: <span className="text-brand-deep dark:text-brand-mint font-bold">{t.ribbonColors[giftData.ribbonColor]}</span>
+                  {t.wizard.ribbonColorLabel}
                 </label>
-                <div className="flex flex-wrap gap-3">
-                  {RIBBON_OPTIONS.map((ribbon) => {
-                    const isSelected = giftData.ribbonColor === ribbon;
+                <div className="flex flex-wrap gap-2.5">
+                  {RIBBON_OPTIONS.map((color) => {
+                    const isSelected = giftData.ribbonColor === color;
                     return (
                       <button
                         type="button"
-                        key={ribbon}
-                        onClick={() => setGiftData({ ...giftData, ribbonColor: ribbon })}
-                        title={t.ribbonColors[ribbon]}
-                        className={`w-10 h-10 rounded-full transition-all flex items-center justify-center shadow-md border border-gray-300 dark:border-gray-600 ${
+                        key={color}
+                        onClick={() => setGiftData({ ...giftData, ribbonColor: color })}
+                        className={`group relative flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all ${
                           isSelected
-                            ? 'ring-4 ring-offset-2 ring-brand-deep dark:ring-offset-brand-darkSurface scale-110'
-                            : 'hover:scale-105 opacity-80 hover:opacity-100'
+                            ? 'border-brand-deep bg-brand-yellow/30 dark:bg-brand-darkCard text-brand-deep dark:text-brand-mint ring-2 ring-brand-deep'
+                            : 'border-gray-200 dark:border-brand-darkBorder bg-white dark:bg-brand-darkCard text-gray-700 dark:text-gray-300 hover:border-brand-muted'
                         }`}
-                        style={{ backgroundColor: RIBBON_HEX[ribbon] }}
                       >
-                        {isSelected && <Check className="w-5 h-5 text-gray-900 drop-shadow" />}
+                        <span
+                          className="w-4 h-4 rounded-full shadow-inner border border-black/10"
+                          style={{ backgroundColor: RIBBON_HEX[color] }}
+                        />
+                        <span>{t.ribbonColors[color]}</span>
                       </button>
                     );
                   })}
@@ -416,9 +396,8 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
 
               {/* Confetti Explosion Style */}
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-1.5">
-                  <PartyPopper className="w-4 h-4 text-brand-deep dark:text-brand-mint" />
-                  <span>{t.wizard.confettiLabel}</span>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                  {t.wizard.confettiLabel}
                 </label>
                 <div className="grid grid-cols-2 gap-2.5">
                   {CONFETTI_OPTIONS.map((style) => {
@@ -499,7 +478,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
             </div>
           )}
 
-          {/* STEP 3: Message & Photo */}
+          {/* STEP 3: Message & Animated Sticker */}
           {currentStep === 3 && (
             <div className="space-y-6 animate-floatUp">
               <div>
@@ -524,7 +503,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
                 </div>
                 <textarea
                   id="personal-message"
-                  rows={4}
+                  rows={3}
                   value={giftData.message}
                   onChange={(e) => setGiftData({ ...giftData, message: e.target.value })}
                   placeholder={t.wizard.messagePlaceholder}
@@ -532,66 +511,89 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
                 />
               </div>
 
-              {/* Photo Upload with Canvas Downscaling */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label htmlFor="photo-file-upload" className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                    {t.wizard.photoLabel}
+              {/* Animated Sticker / Avatar Picker */}
+              <div className="space-y-3 pt-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-1.5">
+                    <Smile className="w-4 h-4 text-brand-deep dark:text-brand-mint" />
+                    <span>{t.wizard.stickerLabel}</span>
                   </label>
                   <span className="text-xs text-brand-deep dark:text-brand-mint font-medium">
-                    {t.wizard.photoHint}
+                    {t.wizard.stickerHint}
                   </span>
                 </div>
 
-                {!giftData.photoUrl ? (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-gray-300 dark:border-brand-darkBorder rounded-2xl p-6 text-center hover:border-brand-deep dark:hover:border-brand-mint cursor-pointer transition-all bg-gray-50 dark:bg-brand-darkCard/50"
+                {/* Category Filter Tabs */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+                  {[
+                    { key: 'all', label: 'All Stickers' },
+                    { key: 'celebration', label: '🎂 Celebration' },
+                    { key: 'cute', label: '🐱 Cute Pets' },
+                    { key: 'love', label: '💖 Love' },
+                    { key: 'party', label: '🥳 Party' },
+                  ].map((tab) => {
+                    const isCurrentTab = stickerCategory === tab.key;
+                    return (
+                      <button
+                        type="button"
+                        key={tab.key}
+                        onClick={() => setStickerCategory(tab.key)}
+                        className={`px-3 py-1.5 rounded-full font-semibold whitespace-nowrap transition-all ${
+                          isCurrentTab
+                            ? 'bg-brand-deep text-white shadow-xs'
+                            : 'bg-gray-100 dark:bg-brand-darkCard text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-brand-darkBorder'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Stickers Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-[300px] overflow-y-auto p-2 border border-gray-100 dark:border-brand-darkBorder rounded-2xl bg-gray-50/50 dark:bg-brand-darkCard/40">
+                  {/* Option: No Sticker (Text only) */}
+                  <button
+                    type="button"
+                    onClick={() => setGiftData({ ...giftData, stickerId: undefined })}
+                    className={`p-2.5 rounded-xl border text-xs font-medium transition-all flex flex-col items-center justify-center text-center gap-1.5 min-h-[96px] ${
+                      giftData.stickerId === undefined
+                        ? 'border-brand-deep bg-brand-yellow/30 dark:bg-brand-darkCard text-brand-deep dark:text-brand-mint ring-2 ring-brand-deep font-bold'
+                        : 'border-gray-200 dark:border-brand-darkBorder bg-white dark:bg-brand-darkCard text-gray-600 dark:text-gray-400 hover:border-brand-muted'
+                    }`}
                   >
-                    <input
-                      id="photo-file-upload"
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      aria-label={t.wizard.photoLabel}
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                    <Upload className="w-8 h-8 mx-auto text-gray-400 dark:text-gray-500 mb-2" />
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                      {isCompressing ? 'Compressing photo...' : t.wizard.dropPhotoHere}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {t.wizard.orClickToUpload} (JPG, PNG, WebP)
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-brand-darkCard rounded-2xl border border-gray-200 dark:border-brand-darkBorder">
-                    <img
-                      src={giftData.photoUrl}
-                      alt="Uploaded preview"
-                      className="w-20 h-20 rounded-xl object-cover border border-gray-200 dark:border-brand-darkBorder"
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                        Photo attached & ultra-compressed
-                      </p>
-                      {imageSize && (
-                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                          Approx size: {(imageSize / 1024).toFixed(2)} KB (100% WhatsApp Safe)
-                        </p>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleRemovePhoto}
-                      className="p-2 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"
-                      title={t.wizard.removePhoto}
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                )}
+                    <span className="text-2xl">✍️</span>
+                    <span>{t.wizard.noSticker}</span>
+                  </button>
+
+                  {filteredStickers.map((sticker) => {
+                    const isSelected = giftData.stickerId === sticker.id;
+                    return (
+                      <button
+                        type="button"
+                        key={sticker.id}
+                        onClick={() => setGiftData({ ...giftData, stickerId: sticker.id })}
+                        className={`p-2.5 rounded-xl border text-xs font-medium transition-all flex flex-col items-center justify-between text-center relative group min-h-[96px] ${
+                          isSelected
+                            ? 'border-brand-deep bg-brand-yellow/30 dark:bg-brand-darkCard text-brand-deep dark:text-brand-mint ring-2 ring-brand-deep font-bold shadow-sm'
+                            : 'border-gray-200 dark:border-brand-darkBorder bg-white dark:bg-brand-darkCard text-gray-700 dark:text-gray-300 hover:border-brand-muted'
+                        }`}
+                      >
+                        <div className="py-1">
+                          <AnimatedSticker id={sticker.id} size="sm" animate={isSelected} />
+                        </div>
+                        <span className="truncate w-full text-[11px] leading-tight font-medium">
+                          {sticker.name}
+                        </span>
+                        {isSelected && (
+                          <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-brand-deep text-white flex items-center justify-center text-[10px]">
+                            ✓
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
@@ -619,7 +621,7 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
                   </span>
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>WhatsApp Ready ({shareUrl.length} chars)</span>
+                    <span>⚡ WhatsApp Ready ({shareUrl.length} chars)</span>
                   </span>
                 </div>
                 <div className="p-3 bg-white dark:bg-brand-darkBg rounded-xl border border-gray-200 dark:border-brand-darkBorder text-xs text-gray-600 dark:text-gray-300 font-mono break-all line-clamp-3 select-all">

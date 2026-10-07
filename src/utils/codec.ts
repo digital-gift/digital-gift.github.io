@@ -1,5 +1,6 @@
 import LZString from 'lz-string';
 import type { GiftData, EventType, BoxColor, RibbonColor, ConfettiStyle, SoundTune } from '../types/gift';
+import { resolveSupabaseUrl } from './supabaseUploader';
 
 const EVENT_MAP: EventType[] = ['birthday', 'anniversary', 'appreciation', 'celebration'];
 const BOX_MAP: BoxColor[] = ['teal', 'coral', 'gold', 'purple', 'midnight', 'rose', 'emerald'];
@@ -27,7 +28,8 @@ interface CompactGiftPayload {
   snd: number;     // sound (1 or 0)
   sndT: number;    // tune index (0..3)
   m: string;       // message
-  img?: string;    // raw base64 (without data:image/... prefix)
+  stk?: number;    // sticker ID (0..15)
+  img?: string;    // raw base64 or legacy CDN ID
 }
 
 /**
@@ -41,27 +43,50 @@ export function encodeGiftToHash(gift: GiftData): string {
   const cIdx = Math.max(0, CONFETTI_MAP.indexOf(gift.confettiStyle || DEFAULT_CONFETTI));
   const sndTIdx = Math.max(0, TUNE_MAP.indexOf(gift.soundTune || DEFAULT_TUNE));
 
-  // Strip data:image/... header from base64 if present to save URL length
+  // Extract compact ID or strip data:image/... header
   let rawImg = gift.photoUrl;
-  if (rawImg && rawImg.includes(',')) {
-    rawImg = rawImg.split(',')[1];
+  if (rawImg) {
+    if (rawImg.startsWith('sb:')) {
+      // Already a Supabase short ID
+    } else if (rawImg.includes('supabase.co/storage/v1/object/public/')) {
+      const match = rawImg.match(/https?:\/\/([^.]+)\.supabase\.co\/storage\/v1\/object\/public\/[^/]+\/(.+)$/);
+      if (match && match[1] && match[2]) {
+        rawImg = `sb:${match[1]}:${match[2]}`;
+      } else {
+        const parts = rawImg.split('/');
+        rawImg = `sb:${parts[parts.length - 1]}`;
+      }
+    } else {
+      const imgurMatch = rawImg.match(/imgur\.com\/([a-zA-Z0-9_-]{5,12})/);
+      if (imgurMatch && imgurMatch[1]) {
+        rawImg = imgurMatch[1];
+      } else if (rawImg.includes(',')) {
+        rawImg = rawImg.split(',')[1];
+      }
+    }
   }
 
-  const payload: CompactGiftPayload = {
-    v: 2,
-    r: gift.recipientName.trim(),
-    s: gift.senderName?.trim() || undefined,
-    e: eIdx,
-    b: bIdx,
-    rb: rbIdx,
-    c: cIdx,
-    snd: gift.soundEnabled ? 1 : 0,
-    sndT: sndTIdx,
-    m: gift.message.trim(),
-    img: rawImg || undefined,
-  };
+  // Ultra-compact array payload:
+  // [version (2), recipient, sender, eventIdx, boxIdx, ribbonIdx, confettiIdx, sound, tuneIdx, message, stickerId, legacyImg?]
+  const arrPayload: (string | number)[] = [
+    2,
+    gift.recipientName.trim(),
+    gift.senderName?.trim() || '',
+    eIdx,
+    bIdx,
+    rbIdx,
+    cIdx,
+    gift.soundEnabled ? 1 : 0,
+    sndTIdx,
+    gift.message.trim(),
+    typeof gift.stickerId === 'number' ? gift.stickerId : -1,
+  ];
 
-  const json = JSON.stringify(payload);
+  if (rawImg) {
+    arrPayload.push(rawImg);
+  }
+
+  const json = JSON.stringify(arrPayload);
   const compressed = LZString.compressToEncodedURIComponent(json);
   return `#data=${compressed}`;
 }
@@ -124,7 +149,47 @@ export function decodeGiftFromHash(input: string): GiftData | null {
 
     const parsed = JSON.parse(json);
 
-    // Validate minimum required fields
+    // Ultra-compact Array Format:
+    // [version, recipient, sender, eventIdx, boxIdx, ribbonIdx, confettiIdx, sound, tuneIdx, message, stickerId, legacyImg?]
+    if (Array.isArray(parsed)) {
+      const [_v, r, s, e, b, rb, c, snd, sndT, m, stk, img] = parsed;
+      if (!r) return null;
+
+      let photoUrl: string | undefined = undefined;
+      if (img && typeof img === 'string') {
+        if (img.startsWith('sb:')) {
+          photoUrl = resolveSupabaseUrl(img);
+        } else if (/^[a-zA-Z0-9_-]{5,12}$/.test(img)) {
+          photoUrl = `https://i.imgur.com/${img}.jpg`;
+        } else if (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('data:')) {
+          photoUrl = img;
+        } else {
+          photoUrl = `data:image/webp;base64,${img}`;
+        }
+      }
+
+      const eventType = typeof e === 'number' && EVENT_MAP[e] ? EVENT_MAP[e] : DEFAULT_EVENT;
+      const boxColor = typeof b === 'number' && BOX_MAP[b] ? BOX_MAP[b] : DEFAULT_BOX;
+      const ribbonColor = typeof rb === 'number' && RIBBON_MAP[rb] ? RIBBON_MAP[rb] : DEFAULT_RIBBON;
+      const confettiStyle = typeof c === 'number' && CONFETTI_MAP[c] ? CONFETTI_MAP[c] : DEFAULT_CONFETTI;
+      const soundTune = typeof sndT === 'number' && TUNE_MAP[sndT] ? TUNE_MAP[sndT] : DEFAULT_TUNE;
+
+      return {
+        recipientName: String(r || 'Friend'),
+        senderName: s ? String(s) : undefined,
+        eventType,
+        boxColor,
+        ribbonColor,
+        confettiStyle,
+        soundEnabled: snd === 1,
+        soundTune,
+        message: String(m || ''),
+        stickerId: typeof stk === 'number' && stk >= 0 ? stk : undefined,
+        photoUrl,
+      };
+    }
+
+    // Object Format (Legacy V1 and V2):
     if (!parsed || typeof parsed !== 'object' || !parsed.r) {
       return null;
     }
@@ -169,10 +234,17 @@ export function decodeGiftFromHash(input: string): GiftData | null {
       soundTune = parsed.sndT as SoundTune;
     }
 
-    // Resolve image (re-attach data URI if raw base64)
+    // Resolve image (Supabase ID, Imgur ID, full HTTP URL, or raw base64)
     let photoUrl: string | undefined = undefined;
     if (parsed.img) {
-      if (parsed.img.startsWith('data:')) {
+      if (parsed.img.startsWith('sb:')) {
+        photoUrl = resolveSupabaseUrl(parsed.img);
+      } else if (/^[a-zA-Z0-9_-]{5,12}$/.test(parsed.img)) {
+        // Direct anonymous Imgur ID (7 characters)
+        photoUrl = `https://i.imgur.com/${parsed.img}.jpg`;
+      } else if (parsed.img.startsWith('http://') || parsed.img.startsWith('https://')) {
+        photoUrl = parsed.img;
+      } else if (parsed.img.startsWith('data:')) {
         photoUrl = parsed.img;
       } else {
         photoUrl = `data:image/webp;base64,${parsed.img}`;
@@ -189,6 +261,7 @@ export function decodeGiftFromHash(input: string): GiftData | null {
       soundEnabled: parsed.snd === 1,
       soundTune,
       message: String(parsed.m || ''),
+      stickerId: typeof parsed.stk === 'number' ? parsed.stk : undefined,
       photoUrl,
       createdAt: parsed.t,
     };

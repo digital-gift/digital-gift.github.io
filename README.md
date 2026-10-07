@@ -4,7 +4,7 @@
 > **Developer Support:** [Buy Me a Coffee (kisharadilz)](https://buymeacoffee.com/kisharadilz)  
 > **Repository:** [https://github.com/digital-gift/digital-gift.github.io](https://github.com/digital-gift/digital-gift.github.io)
 
-A privacy-first, zero-server web application built with **Astro 5 (SSG)**, **React 19 (Islands Architecture)**, and **Tailwind CSS**. Enables users to craft customized, animated virtual birthday and celebration gift boxes with confetti, music, photos, and personal messages. The complete gift state is compressed directly into shareable URL hashes using **LZ-String**, requiring zero databases, zero cookies, zero user accounts, and zero backend servers.
+A privacy-first, zero-server web application built with **Astro 5 (SSG)**, **React 19 (Islands Architecture)**, and **Tailwind CSS**. Enables users to craft customized, animated virtual birthday and celebration gift boxes with confetti, music, animated stickers/memojis, and personal messages. The complete gift state is compressed directly into shareable URL hashes using **LZ-String**, requiring zero databases, zero cookies, zero user accounts, and zero backend servers.
 
 ---
 
@@ -16,27 +16,29 @@ Traditional greeting card platforms store your personal greetings, names, and ph
 [ Sender Browser ] 
    │
    ├─► 1. Enters recipient name, selects 3D box color, ribbon wrap & celebration tune
-   ├─► 2. Writes personal message & attaches optional photo (downscaled to WebP via HTML5 Canvas)
-   ├─► 3. Compresses state: JSON -> LZ-String -> Base64 URL-safe hash
+   ├─► 2. Writes personal message & selects curated animated 3D sticker or avatar (Cake, Cat, Pup, Bear, etc.)
+   ├─► 3. Compresses state: Array -> LZ-String -> Base64 URL-safe hash (~70 chars)
    │
    ▼
-[ Generated Magic Link: https://digital-gift.github.io/#data=N4IgbiBcCMA0... ]
+[ Generated Magic Link: https://digital-gift.github.io/#data=NoJgNARAggNgpgDwpAyg... (<120 chars) ]
    │
-   ├─► Sender sends link directly via WhatsApp, SMS, or Email
+   ├─► Sender sends link directly via WhatsApp, SMS, or Email (never truncated or broken)
    │
    ▼
 [ Recipient Browser ]
    │
    ├─► 1. Unpacks #data= hash directly client-side via LZ-String decompression
    ├─► 2. Renders 3D wobbling gift box stage
-   └─► 3. On tap: Lid flies open, canvas-confetti erupts, Web Audio plays tune, card is revealed!
+   └─► 3. On tap: Lid flies open, canvas-confetti erupts, Web Audio plays tune, card & animated sticker revealed!
 ```
 
 ---
 
 ## ✨ Key Features
 
-- **Zero-Server State Serialization**: All state (names, occasion, colors, sound choices, message, photo) is serialized into JSON and encoded via `lz-string` into the URL hash fragment (`#data=...`).
+- **Zero-Server State Serialization**: All state (names, occasion, colors, sound choices, message, animated sticker ID) is serialized into an ultra-compact array and encoded via `lz-string` into the URL hash fragment (`#data=...`).
+- **Curated 3D Animated Stickers & Celebration Avatars**: 16 lovingly crafted vector animated stickers (Birthday Cake with flickering candles, Party Emoji, Party Pup, Kawaii Cat, Dancing Bear, 3D Beating Heart, Royal Crown, Superstar Trophy, Rocket, Champagne Toast, and more) that animate at 60fps with zero external dependencies.
+- **Ultra-Short WhatsApp Links (<120 Characters)**: By storing only an avatar ID (0..15) instead of multi-kilobyte images, the entire shareable URL is compressed to **under ~100–120 characters**, fitting effortlessly on a single line in WhatsApp, iMessage, and SMS without truncating or breaking.
 - **Interactive 3D / SVG Gift Box**: Detailed multi-layered gift box with realistic lighting, ribbon wraps, bows, drop shadows, and wobble animation.
 - **Dynamic Unboxing Theater**: On click or tap, the lid flies off with 3D perspective transforms, accompanied by an instant particle explosion and synthesized celebration audio.
 - **Canvas-Confetti Explosions**: 4 selectable celebratory particle styles:
@@ -49,12 +51,11 @@ Traditional greeting card platforms store your personal greetings, names, and ph
   - 🎺 *Triumphant Fanfare*
   - 🔔 *Sparkling Wind Chimes*
   - ✨ *Enchanted Magic Sparkle*
-- **In-Browser Image Downscaling**: HTML5 Canvas downsamples attached photos to max 160×160px WebP at ~0.7 quality (<10KB) before URL hash encoding.
 - **4-Step Creator Wizard**:
   - Step 1: Recipient Name & Event Type (Birthday, Anniversary, Appreciation, Celebration).
   - Step 2: Gift box color, ribbon wrap, confetti style, and audio preview.
-  - Step 3: Heartfelt personal message and optional photo upload with character counter.
-  - Step 4: 1-click clipboard copy, direct WhatsApp sharing, and an in-app "Test Unboxing Preview" simulator.
+  - Step 3: Heartfelt personal message and animated sticker/avatar picker with category filters.
+  - Step 4: 1-click clipboard copy, direct WhatsApp sharing with live character counter, and in-app "Test Unboxing Preview" simulator.
 - **Viral Share Loop**: Minimal "Create Your Own Free Surprise Gift" call to action beneath the revealed greeting card.
 - **Strictly Responsive Navigation**:
   - **Desktop (≥ 1024px)**: Displays full labels alongside icons.
