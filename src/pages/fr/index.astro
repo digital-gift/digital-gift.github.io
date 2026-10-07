@@ -1,0 +1,10 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { GiftApp } from '../../components/GiftApp';
+import SeoContentSection from '../../components/SeoContentSection.astro';
+---
+
+<Layout locale="fr">
+  <GiftApp client:load locale="fr" />
+  <SeoContentSection locale="fr" />
+</Layout>

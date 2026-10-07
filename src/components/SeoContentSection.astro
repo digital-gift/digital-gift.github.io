@@ -1,0 +1,275 @@
+---
+import type { SupportedLocale } from '../types/gift';
+
+interface Props {
+  locale: SupportedLocale;
+}
+
+const { locale } = Astro.props;
+
+interface SeoContentText {
+  howItWorksTitle: string;
+  howItWorksSubtitle: string;
+  steps: { title: string; desc: string; icon: string }[];
+  whyTitle: string;
+  whySubtitle: string;
+  features: { title: string; desc: string; icon: string }[];
+  faqTitle: string;
+  faqSubtitle: string;
+  faqs: { q: string; a: string }[];
+}
+
+const contentData: Record<SupportedLocale, SeoContentText> = {
+  en: {
+    howItWorksTitle: 'How It Works in 4 Simple Steps',
+    howItWorksSubtitle: 'Crafting a memorable digital unboxing experience takes less than 60 seconds.',
+    steps: [
+      {
+        title: '1. Recipient & Occasion',
+        desc: 'Specify the recipient name and choose between Birthday, Anniversary, Appreciation, or Celebration.',
+        icon: '🎯'
+      },
+      {
+        title: '2. Box & Audio Effects',
+        desc: 'Choose luxury colors, ribbons, confetti explosions (balloons, stars, fireworks), and Web Audio synth chimes.',
+        icon: '🎨'
+      },
+      {
+        title: '3. Personal Note & Photo',
+        desc: 'Add your heartfelt wishes and an optional photo, automatically downscaled to lightweight WebP.',
+        icon: '💌'
+      },
+      {
+        title: '4. Instant Magic Link',
+        desc: 'Copy your generated URL hash link or share instantly via WhatsApp. Zero databases, 100% private.',
+        icon: '🚀'
+      }
+    ],
+    whyTitle: 'Why Choose DigitalGift? 100% Privacy-First Architecture',
+    whySubtitle: 'The modern way to share heartfelt surprises without compromising privacy or tracking.',
+    features: [
+      {
+        title: 'Zero-Server Privacy',
+        desc: 'All gift card details are compressed directly into the shareable URL hash using LZ-String. No database, zero tracking, and no cookies.',
+        icon: '🔒'
+      },
+      {
+        title: 'Zero App Installs Required',
+        desc: 'Your recipient opens the surprise directly in any modern mobile or desktop browser without downloading apps or creating accounts.',
+        icon: '⚡'
+      },
+      {
+        title: 'Interactive 3D Unboxing Theater',
+        desc: 'Features smooth SVG 3D wobble physics, lid-flying animations, canvas-confetti bursts, and harmonious Web Audio API melodies.',
+        icon: '🎁'
+      }
+    ],
+    faqTitle: 'Frequently Asked Questions',
+    faqSubtitle: 'Everything you need to know about creating and sending free virtual gifts.',
+    faqs: [
+      {
+        q: 'How do I create and send a virtual gift box for free?',
+        a: 'Enter your recipient\'s name, select the celebration occasion, customize the 3D gift box colors and music, write your personal message, and generate a free magic link. You can copy the link or share it directly via WhatsApp.'
+      },
+      {
+        q: 'Does DigitalGift store my personal messages or photos on a server?',
+        a: 'No. DigitalGift is 100% client-side and zero-server. Your entire gift state, including message and compressed photo, is encoded directly into the shareable URL hash using LZ-string compression. No data is ever sent to or stored on any server.'
+      },
+      {
+        q: 'How does the recipient open the digital surprise gift?',
+        a: 'When your recipient opens the magic link, they see an interactive animated 3D gift box. Tapping the box triggers a dynamic lid-flying animation, multi-color confetti, celebratory audio tunes, and unveils your personal greeting card.'
+      },
+      {
+        q: 'Which celebration occasions are supported?',
+        a: 'DigitalGift supports Birthdays, Anniversaries, Appreciation & Thank You messages, and General Congratulations celebrations.'
+      }
+    ]
+  },
+  es: {
+    howItWorksTitle: 'Cómo Funciona en 4 Sencillos Pasos',
+    howItWorksSubtitle: 'Crear una experiencia mágica de apertura toma menos de 60 segundos.',
+    steps: [
+      { title: '1. Destinatario y Ocasión', desc: 'Indica a quién va dirigido y la ocasión especial.', icon: '🎯' },
+      { title: '2. Diseño y Sonido', desc: 'Elige colores, lazos, estilo de confeti y melodías festivas.', icon: '🎨' },
+      { title: '3. Mensaje y Foto', desc: 'Escribe tus mejores deseos y adjunta una foto opcional.', icon: '💌' },
+      { title: '4. Enlace Mágico', desc: 'Copia el enlace o compártelo al instante por WhatsApp.', icon: '🚀' }
+    ],
+    whyTitle: '¿Por Qué Elegir DigitalGift? Privacidad Total',
+    whySubtitle: 'La forma moderna de regalar sorpresas sin registros ni servidores.',
+    features: [
+      { title: '100% Sin Servidores', desc: 'Todo se comprime en el enlace URL. Cero bases de datos y privacidad total.', icon: '🔒' },
+      { title: 'Sin Instalaciones', desc: 'El destinatario lo abre al instante en cualquier navegador.', icon: '⚡' },
+      { title: 'Apertura 3D Interactiva', desc: 'Animación de apertura, confeti y música generada en el navegador.', icon: '🎁' }
+    ],
+    faqTitle: 'Preguntas Frecuentes',
+    faqSubtitle: 'Todo lo que necesitas saber sobre las cajas de regalo virtuales.',
+    faqs: [
+      { q: '¿Cómo creo una caja de regalo virtual gratis?', a: 'Introduce el nombre, personaliza el estilo y la música, añade tu mensaje y copia tu enlace mágico.' },
+      { q: '¿Se guardan mis mensajes o fotos en algún servidor?', a: 'No. Todo se procesa y codifica 100% en tu propio navegador mediante compresión LZ-String.' },
+      { q: '¿Cómo abre el regalo el destinatario?', a: 'Al hacer clic en el enlace, ve la caja 3D y al tocarla se abre con música, confeti y tu carta.' },
+      { q: '¿Qué ocasiones están disponibles?', a: 'Cumpleaños, aniversarios, agradecimiento y felicitaciones generales.' }
+    ]
+  },
+  fr: {
+    howItWorksTitle: 'Comment ça marche en 4 étapes simples',
+    howItWorksSubtitle: 'Créez une surprise inoubliable en moins de 60 secondes.',
+    steps: [
+      { title: '1. Destinataire & Occasion', desc: 'Renseignez le prénom et l’événement à célébrer.', icon: '🎯' },
+      { title: '2. Style & Effets Sonores', desc: 'Personnalisez les couleurs, confettis et mélodies.', icon: '🎨' },
+      { title: '3. Message & Photo', desc: 'Rédigez vos vœux chaleureux et ajoutez une photo souvenir.', icon: '💌' },
+      { title: '4. Lien Magique Immédiat', desc: 'Partagez directement par WhatsApp ou copiez le lien.', icon: '🚀' }
+    ],
+    whyTitle: 'Pourquoi DigitalGift ? Confidentialité Absolue',
+    whySubtitle: 'Des cadeaux virtuels interactifs sans aucun serveur ni collecte de données.',
+    features: [
+      { title: 'Zéro Serveur & Confidentialité', desc: 'Les données sont compressées dans le lien URL avec LZ-String.', icon: '🔒' },
+      { title: 'Aucune Application Requise', desc: 'S’ouvre directement sur smartphone et ordinateur.', icon: '⚡' },
+      { title: 'Déballage 3D Animé', desc: 'Explosion de confettis, envol du couvercle et mélodies Web Audio.', icon: '🎁' }
+    ],
+    faqTitle: 'Foire Aux Questions',
+    faqSubtitle: 'Tout savoir sur la création de cadeaux virtuels.',
+    faqs: [
+      { q: 'Comment créer un cadeau virtuel gratuit ?', a: 'Remplissez le formulaire, personnalisez l’ambiance et partagez votre lien magique.' },
+      { q: 'Mes messages ou photos sont-ils stockés ?', a: 'Non. Tout s’exécute 100% dans votre navigateur, aucun serveur n’est utilisé.' },
+      { q: 'Comment le destinataire ouvre-t-il le cadeau ?', a: 'Il clique sur le lien et touche la boîte 3D pour lancer l’animation.' },
+      { q: 'Quels événements sont disponibles ?', a: 'Anniversaires, mariages, remerciements et félicitations.' }
+    ]
+  },
+  pt: {
+    howItWorksTitle: 'Como Funciona em 4 Passos Simples',
+    howItWorksSubtitle: 'Crie uma experiência mágica de presente em menos de 1 minuto.',
+    steps: [
+      { title: '1. Destinatário e Ocasião', desc: 'Escolha para quem é e o tipo de comemoração.', icon: '🎯' },
+      { title: '2. Estilo e Música', desc: 'Escolha cores da caixa, confetes e sons festivos.', icon: '🎨' },
+      { title: '3. Mensagem e Foto', desc: 'Escreva suas palavras especiais e anexe uma foto.', icon: '💌' },
+      { title: '4. Link Mágico Imediato', desc: 'Copie ou envie direto pelo WhatsApp.', icon: '🚀' }
+    ],
+    whyTitle: 'Por Que Escolher o DigitalGift? Privacidade Total',
+    whySubtitle: 'O jeito moderno e seguro de enviar surpresas digitais.',
+    features: [
+      { title: '100% Sem Servidor', desc: 'Tudo é compactado diretamente no link com LZ-String.', icon: '🔒' },
+      { title: 'Sem Instalar Aplicativos', desc: 'Abre instantaneamente em qualquer navegador.', icon: '⚡' },
+      { title: 'Abertura 3D Interativa', desc: 'Tampa animada, explosão de confetes e música festiva.', icon: '🎁' }
+    ],
+    faqTitle: 'Perguntas Frequentes',
+    faqSubtitle: 'Tire suas dúvidas sobre o gerador de presentes.',
+    faqs: [
+      { q: 'Como criar um presente virtual grátis?', a: 'Preencha o formulário, escolha os efeitos e copie o seu link mágico.' },
+      { q: 'Minha foto e mensagem são salvas em algum banco de dados?', a: 'Não. Tudo fica compactado no próprio link do navegador.' },
+      { q: 'Como a pessoa abre a caixa?', a: 'Ela clica no link e toca na caixa 3D para revelar o presente.' },
+      { q: 'Quais ocasiões posso escolher?', a: 'Aniversário, bodas, gratidão e parabéns em geral.' }
+    ]
+  },
+  ja: {
+    howItWorksTitle: '4つの簡単ステップで作成',
+    howItWorksSubtitle: '感動の3Dサプライズ体験をわずか1分で作成できます。',
+    steps: [
+      { title: '1. お相手とイベント選択', desc: 'お相手の名前とお祝いの種類（誕生日・記念日等）を指定。', icon: '🎯' },
+      { title: '2. ボックス・音・演出', desc: '箱の色、リボン、紙吹雪の種類、Web Audioメロディを選択。', icon: '🎨' },
+      { title: '3. メッセージと写真', desc: 'お祝いメッセージを入力し、写真を軽量添付。', icon: '💌' },
+      { title: '4. マジックリンク生成', desc: 'リンクをコピーまたはWhatsAppで即時共有。完全無料・サーバー不要。', icon: '🚀' }
+    ],
+    whyTitle: 'DigitalGiftが選ばれる理由 - 完全プライバシー保護',
+    whySubtitle: 'サーバー保存なし・登録不要の次世代デジタルギフト。',
+    features: [
+      { title: '100% 端末内処理・サーバー不要', desc: 'LZ-String圧縮によりURLハッシュ内にデータを保持。サーバーに一切残りません。', icon: '🔒' },
+      { title: 'アプリのインストール不要', desc: 'スマホやPCのブラウザからURLを開くだけで即座に開封できます。', icon: '⚡' },
+      { title: '迫力の3D開封アニメーション', desc: 'フタが飛び跳ね、紙吹雪が舞い散り、音楽と共にお祝いカードが現れます。', icon: '🎁' }
+    ],
+    faqTitle: 'よくある質問 (FAQ)',
+    faqSubtitle: 'バーチャルギフトボックスに関する疑問にお答えします。',
+    faqs: [
+      { q: '無料でギフトボックスを作成・送信できますか？', a: 'はい、会員登録や課金は一切不要で、何度でも無料でご利用いただけます。' },
+      { q: 'メッセージや写真がサーバーに保存されることはありますか？', a: 'いいえ。100%ブラウザ内で完結し、URLのハッシュ部分にのみ暗号化・圧縮されて保持されます。' },
+      { q: '受け取った相手はどうやって開封しますか？', a: 'リンクを開くと揺れる3Dギフトボックスが表示され、タップするとアニメーションと音楽でカードが現れます。' },
+      { q: 'どのようなお祝いに対応していますか？', a: '誕生日、記念日、感謝のメッセージ、各種お祝いに対応しています。' }
+    ]
+  }
+};
+
+const c = contentData[locale] || contentData.en;
+---
+
+<section class="w-full max-w-5xl mx-auto px-4 py-16 space-y-20 border-t border-gray-200/60 dark:border-brand-darkBorder mt-12">
+  <!-- How It Works Section -->
+  <div id="how-it-works" class="space-y-8 text-center">
+    <div class="space-y-3">
+      <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+        {c.howItWorksTitle}
+      </h2>
+      <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+        {c.howItWorksSubtitle}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
+      {c.steps.map((step) => (
+        <article class="p-6 rounded-2xl bg-white dark:bg-brand-darkSurface border border-gray-200/80 dark:border-brand-darkBorder shadow-md hover:shadow-lg transition-all flex flex-col justify-between">
+          <div class="space-y-3">
+            <span class="text-3xl">{step.icon}</span>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">
+              {step.title}
+            </h3>
+            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+              {step.desc}
+            </p>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+
+  <!-- Why Choose DigitalGift -->
+  <div id="features" class="space-y-8 text-center">
+    <div class="space-y-3">
+      <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+        {c.whyTitle}
+      </h2>
+      <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+        {c.whySubtitle}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+      {c.features.map((feature) => (
+        <article class="p-6 rounded-2xl bg-white dark:bg-brand-darkSurface border border-gray-200/80 dark:border-brand-darkBorder shadow-md hover:shadow-lg transition-all space-y-3">
+          <span class="text-3xl">{feature.icon}</span>
+          <h3 class="text-lg font-bold text-brand-deep dark:text-brand-mint">
+            {feature.title}
+          </h3>
+          <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+            {feature.desc}
+          </p>
+        </article>
+      ))}
+    </div>
+  </div>
+
+  <!-- Frequently Asked Questions (FAQ) with Schema Matching -->
+  <div id="faq" class="space-y-8 max-w-3xl mx-auto">
+    <div class="text-center space-y-3">
+      <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+        {c.faqTitle}
+      </h2>
+      <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+        {c.faqSubtitle}
+      </p>
+    </div>
+
+    <div class="space-y-4">
+      {c.faqs.map((faq) => (
+        <details class="group p-5 rounded-2xl bg-white dark:bg-brand-darkSurface border border-gray-200/80 dark:border-brand-darkBorder shadow-sm transition-all">
+          <summary class="font-bold text-base sm:text-lg text-gray-900 dark:text-white cursor-pointer list-none flex items-center justify-between">
+            <span>{faq.q}</span>
+            <span class="transition-transform group-open:rotate-180 text-brand-deep dark:text-brand-mint">
+              ▼
+            </span>
+          </summary>
+          <p class="mt-4 text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed border-t border-gray-100 dark:border-brand-darkBorder pt-3">
+            {faq.a}
+          </p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>

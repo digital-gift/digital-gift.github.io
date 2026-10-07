@@ -1,0 +1,236 @@
+---
+import type { SupportedLocale } from '../types/gift';
+import { getTranslations } from '../i18n/translations';
+
+interface Props {
+  currentLocale: SupportedLocale;
+}
+
+const { currentLocale } = Astro.props;
+const t = getTranslations(currentLocale);
+
+const languages: { code: SupportedLocale; label: string; flag: string; path: string }[] = [
+  { code: 'en', label: 'English', flag: '🇺🇸', path: '/' },
+  { code: 'es', label: 'Español', flag: '🇪🇸', path: '/es/' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷', path: '/fr/' },
+  { code: 'pt', label: 'Português', flag: '🇵🇹', path: '/pt/' },
+  { code: 'ja', label: '日本語', flag: '🇯🇵', path: '/ja/' },
+];
+
+const currentLang = languages.find((l) => l.code === currentLocale) || languages[0];
+---
+
+<header class="sticky top-0 z-50 w-full backdrop-blur-md bg-white/85 dark:bg-brand-darkBg/85 border-b border-gray-200/60 dark:border-brand-darkBorder transition-colors duration-200">
+  <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+    <!-- Brand Mark -->
+    <a href={currentLang.path} class="flex items-center gap-2.5 group focus:outline-none focus:ring-2 focus:ring-brand-deep rounded-xl p-1">
+      <div class="w-9 h-9 rounded-xl bg-brand-deep text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-brand-mint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 12 20 22 4 22 4 12" />
+          <rect x="2" y="7" width="20" height="5" />
+          <line x1="12" y1="22" x2="12" y2="7" />
+          <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+          <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+        </svg>
+      </div>
+      <span class="font-extrabold text-lg sm:text-xl text-gray-900 dark:text-white tracking-tight">
+        Digital<span class="text-brand-deep dark:text-brand-mint">Gift</span>
+      </span>
+    </a>
+
+    <!-- Navigation Actions -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Language Selector -->
+      <div class="relative group" id="lang-dropdown-wrapper">
+        <!-- Desktop: Icon + Label -->
+        <button
+          type="button"
+          id="lang-menu-btn-desktop"
+          class="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-brand-darkSurface border border-gray-200 dark:border-brand-darkBorder transition-all"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-brand-deep dark:text-brand-mint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="2" y1="12" x2="22" y2="12" />
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+          <span>{currentLang.label}</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+
+        <!-- Mobile & Tablet: STRICTLY ICONS ONLY -->
+        <button
+          type="button"
+          id="lang-menu-btn-mobile"
+          class="flex lg:hidden items-center justify-center w-10 h-10 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-brand-darkSurface border border-gray-200 dark:border-brand-darkBorder transition-all"
+          aria-label={t.nav.selectLanguage}
+          title={t.nav.selectLanguage}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-brand-deep dark:text-brand-mint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="2" y1="12" x2="22" y2="12" />
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div
+          id="lang-menu-dropdown"
+          class="hidden absolute right-0 mt-2 w-44 rounded-2xl bg-white dark:bg-brand-darkSurface shadow-2xl border border-gray-200 dark:border-brand-darkBorder py-1.5 z-50 backdrop-blur-md"
+        >
+          {languages.map((lang) => (
+            <a
+              href={lang.path}
+              class={`flex items-center justify-between px-3.5 py-2 text-sm transition-colors ${
+                lang.code === currentLocale
+                  ? 'bg-brand-yellow/30 dark:bg-brand-darkCard text-brand-deep dark:text-brand-mint font-bold'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-brand-darkCard'
+              }`}
+            >
+              <span class="flex items-center gap-2">
+                <span>{lang.flag}</span>
+                <span>{lang.label}</span>
+              </span>
+              {lang.code === currentLocale && (
+                <span class="w-2 h-2 rounded-full bg-brand-deep dark:bg-brand-mint" />
+              )}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <!-- Theme Switcher -->
+      <div>
+        <!-- Desktop: Icon + Label -->
+        <button
+          type="button"
+          id="theme-toggle-desktop"
+          class="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-brand-darkSurface border border-gray-200 dark:border-brand-darkBorder transition-all"
+          aria-label={t.nav.themeToggle}
+        >
+          <!-- Sun Icon (Shown in Dark Mode) -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="hidden dark:block w-4 h-4 text-brand-yellow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+          <!-- Moon Icon (Shown in Light Mode) -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="block dark:hidden w-4 h-4 text-brand-deep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <span class="dark:hidden">Dark</span>
+          <span class="hidden dark:inline">Light</span>
+        </button>
+
+        <!-- Mobile & Tablet: STRICTLY ICONS ONLY -->
+        <button
+          type="button"
+          id="theme-toggle-mobile"
+          class="flex lg:hidden items-center justify-center w-10 h-10 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-brand-darkSurface border border-gray-200 dark:border-brand-darkBorder transition-all"
+          aria-label={t.nav.themeToggle}
+          title={t.nav.themeToggle}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="hidden dark:block w-5 h-5 text-brand-yellow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="block dark:hidden w-5 h-5 text-brand-deep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Support the Developer CTA -->
+      <div>
+        <!-- Desktop: Icon + Label -->
+        <a
+          href="https://buymeacoffee.com/kisharadilz"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hidden lg:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-brand-yellow hover:bg-[#ffe873] text-brand-deep font-bold text-sm shadow-sm border border-brand-yellow/80 hover:scale-105 active:scale-95 transition-all"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 fill-current" viewBox="0 0 24 24" stroke="none">
+            <path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.157-.775-1.63a4.07 4.07 0 0 0-1.57-1.127C17.062 2.7 16.326 2.5 15.548 2.5H4.25a2.25 2.25 0 0 0-2.25 2.25v8.5a5.25 5.25 0 0 0 5.25 5.25h6.5a5.25 5.25 0 0 0 5.25-5.25v-1.047a4.42 4.42 0 0 0 1.258-2.67 4.22 4.22 0 0 0-.042-3.118zm-2.627 4.398c-.146.495-.446.924-.852 1.226v-6.9a2.57 2.57 0 0 1 1.05.698c.28.34.464.747.545 1.182.079.43.04.877-.11 1.294l-.633 2.5zm-5.089 5.687H7.25a3.75 3.75 0 0 1-3.75-3.75v-8.5a.75.75 0 0 1 .75-.75h11.298c.552 0 1.044.378 1.183.914l.006.028v8.308a3.75 3.75 0 0 1-3.75 3.75z"/>
+          </svg>
+          <span>{t.nav.support}</span>
+        </a>
+
+        <!-- Mobile & Tablet: STRICTLY ICONS ONLY -->
+        <a
+          href="https://buymeacoffee.com/kisharadilz"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex lg:hidden items-center justify-center w-10 h-10 rounded-xl bg-brand-yellow hover:bg-[#ffe873] text-brand-deep shadow-sm border border-brand-yellow/80 hover:scale-105 active:scale-95 transition-all"
+          aria-label={t.nav.support}
+          title={t.nav.support}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 fill-current" viewBox="0 0 24 24" stroke="none">
+            <path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.157-.775-1.63a4.07 4.07 0 0 0-1.57-1.127C17.062 2.7 16.326 2.5 15.548 2.5H4.25a2.25 2.25 0 0 0-2.25 2.25v8.5a5.25 5.25 0 0 0 5.25 5.25h6.5a5.25 5.25 0 0 0 5.25-5.25v-1.047a4.42 4.42 0 0 0 1.258-2.67 4.22 4.22 0 0 0-.042-3.118zm-2.627 4.398c-.146.495-.446.924-.852 1.226v-6.9a2.57 2.57 0 0 1 1.05.698c.28.34.464.747.545 1.182.079.43.04.877-.11 1.294l-.633 2.5zm-5.089 5.687H7.25a3.75 3.75 0 0 1-3.75-3.75v-8.5a.75.75 0 0 1 .75-.75h11.298c.552 0 1.044.378 1.183.914l.006.028v8.308a3.75 3.75 0 0 1-3.75 3.75z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  // Language Dropdown Toggle
+  const setupLangDropdown = () => {
+    const desktopBtn = document.getElementById('lang-menu-btn-desktop');
+    const mobileBtn = document.getElementById('lang-menu-btn-mobile');
+    const dropdown = document.getElementById('lang-menu-dropdown');
+
+    const toggle = (e: Event) => {
+      e.stopPropagation();
+      dropdown?.classList.toggle('hidden');
+    };
+
+    desktopBtn?.addEventListener('click', toggle);
+    mobileBtn?.addEventListener('click', toggle);
+
+    document.addEventListener('click', (e) => {
+      if (!dropdown?.contains(e.target as Node)) {
+        dropdown?.classList.add('hidden');
+      }
+    });
+  };
+
+  // Theme Switcher Toggle
+  const setupThemeToggle = () => {
+    const desktopBtn = document.getElementById('theme-toggle-desktop');
+    const mobileBtn = document.getElementById('theme-toggle-mobile');
+
+    const toggleTheme = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      if (isDark) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      }
+    };
+
+    desktopBtn?.addEventListener('click', toggleTheme);
+    mobileBtn?.addEventListener('click', toggleTheme);
+  };
+
+  setupLangDropdown();
+  setupThemeToggle();
+</script>

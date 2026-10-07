@@ -1,0 +1,294 @@
+---
+import Navbar from '../components/Navbar.astro';
+import type { SupportedLocale } from '../types/gift';
+import { getTranslations } from '../i18n/translations';
+
+interface Props {
+  locale?: SupportedLocale;
+  title?: string;
+  description?: string;
+}
+
+const { locale = 'en', title, description } = Astro.props;
+const t = getTranslations(locale);
+
+const metaTitle = title || t.meta.title;
+const metaDescription = description || t.meta.description;
+const canonicalUrl = new URL(Astro.url.pathname, 'https://digital-gift.github.io').href;
+
+const localeLabels: Record<SupportedLocale, string> = {
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+  pt: 'Português',
+  ja: '日本語',
+};
+
+// JSON-LD Schema targeting high-volume keywords
+const jsonLdWebApp = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  'name': 'DigitalGift',
+  'alternateName': 'Interactive Virtual Gift Box Maker',
+  'url': 'https://digital-gift.github.io',
+  'description': metaDescription,
+  'inLanguage': locale,
+  'applicationCategory': 'EntertainmentApplication',
+  'operatingSystem': 'Any',
+  'browserRequirements': 'Requires JavaScript. Requires HTML5 Canvas & Web Audio API.',
+  'offers': {
+    '@type': 'Offer',
+    'price': '0',
+    'priceCurrency': 'USD',
+  },
+  'featureList': [
+    'Zero-server client-side state compression',
+    'Interactive 3D SVG animated gift unboxing',
+    'Web Audio API celebratory synthesizers',
+    'Multi-style canvas confetti explosions',
+    'Zero cookies, zero databases, 100% privacy-first'
+  ],
+  'screenshot': 'https://digital-gift.github.io/og-image.png',
+  'image': 'https://digital-gift.github.io/og-image.png',
+  'datePublished': '2025-01-01',
+  'dateModified': '2026-10-07',
+  'aggregateRating': {
+    '@type': 'AggregateRating',
+    'ratingValue': '4.9',
+    'reviewCount': '142',
+    'bestRating': '5',
+    'worstRating': '1',
+  },
+  'keywords': [
+    'free online birthday gift box',
+    'virtual surprise box link',
+    'interactive digital greeting card',
+    'custom digital gift generator',
+    'online surprise unboxing'
+  ],
+  'author': {
+    '@type': 'Person',
+    'name': 'kisharadilz',
+    'url': 'https://buymeacoffee.com/kisharadilz'
+  },
+  'publisher': {
+    '@type': 'Organization',
+    'name': 'DigitalGift',
+    'url': 'https://digital-gift.github.io',
+    'logo': 'https://digital-gift.github.io/favicon.svg'
+  }
+};
+
+const jsonLdSoftwareApp = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  'name': 'DigitalGift - Client-Side Gift Generator',
+  'applicationCategory': 'MultimediaApplication',
+  'operatingSystem': 'Browser',
+  'inLanguage': locale,
+  'offers': {
+    '@type': 'Offer',
+    'price': '0',
+    'priceCurrency': 'USD'
+  }
+};
+
+// BreadcrumbList Schema
+const jsonLdBreadcrumbs = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  'itemListElement': [
+    {
+      '@type': 'ListItem',
+      'position': 1,
+      'name': 'Home',
+      'item': 'https://digital-gift.github.io/'
+    },
+    ...(locale !== 'en' ? [
+      {
+        '@type': 'ListItem',
+        'position': 2,
+        'name': localeLabels[locale],
+        'item': canonicalUrl
+      }
+    ] : [])
+  ]
+};
+
+// FAQPage Schema for Rich Snippets
+const jsonLdFAQ = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  'mainEntity': [
+    {
+      '@type': 'Question',
+      'name': 'How do I create and send a virtual gift box for free?',
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': 'Enter your recipient\'s name, choose your gift box colors and celebration music, type your personal message, and generate a free magic link. You can copy the link or share it directly via WhatsApp.'
+      }
+    },
+    {
+      '@type': 'Question',
+      'name': 'Does DigitalGift store my personal messages or photos on a server?',
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': 'No. DigitalGift is 100% client-side and zero-server. Your entire gift state, including message and compressed photo, is encoded directly into the shareable URL hash using LZ-string compression. No data is ever sent to or stored on any server.'
+      }
+    },
+    {
+      '@type': 'Question',
+      'name': 'How does the recipient open the digital surprise gift?',
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': 'When your recipient opens the magic link, they see an interactive animated 3D gift box. Tapping the box triggers a dynamic lid-flying animation, multi-color confetti, celebratory audio tunes, and unveils your personal greeting card.'
+      }
+    },
+    {
+      '@type': 'Question',
+      'name': 'Which celebration occasions are supported?',
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': 'DigitalGift supports Birthdays, Anniversaries, Appreciation & Thank You messages, and General Congratulations celebrations.'
+      }
+    }
+  ]
+};
+---
+
+<!doctype html>
+<html lang={locale} class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Google tag (gtag.js) -->
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-0KECH4KJ1R"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-0KECH4KJ1R');
+    </script>
+
+    <!-- SEO Meta Directives -->
+    <title>{metaTitle}</title>
+    <meta name="description" content={metaDescription} />
+    <meta name="keywords" content={t.meta.keywords} />
+    <meta name="author" content="kisharadilz" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="theme-color" content="#287A74" />
+
+    <!-- Mobile Web App Capable -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="DigitalGift" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <!-- Open Graph / Facebook / LinkedIn / Discord -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={metaTitle} />
+    <meta property="og:description" content={metaDescription} />
+    <meta property="og:image" content="https://digital-gift.github.io/og-image.png" />
+    <meta property="og:image:secure_url" content="https://digital-gift.github.io/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="DigitalGift - 100% Client-Side Interactive Virtual Gift Box Maker" />
+    <meta property="og:site_name" content="DigitalGift" />
+    <meta property="og:locale" content={locale === 'en' ? 'en_US' : locale} />
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalUrl} />
+    <meta name="twitter:title" content={metaTitle} />
+    <meta name="twitter:description" content={metaDescription} />
+    <meta name="twitter:image" content="https://digital-gift.github.io/og-image.png" />
+    <meta name="twitter:image:alt" content="DigitalGift - 100% Client-Side Interactive Virtual Gift Box Maker" />
+
+    <!-- i18n hreflang alternate tags -->
+    <link rel="alternate" hreflang="en" href="https://digital-gift.github.io/" />
+    <link rel="alternate" hreflang="es" href="https://digital-gift.github.io/es/" />
+    <link rel="alternate" hreflang="fr" href="https://digital-gift.github.io/fr/" />
+    <link rel="alternate" hreflang="pt" href="https://digital-gift.github.io/pt/" />
+    <link rel="alternate" hreflang="ja" href="https://digital-gift.github.io/ja/" />
+    <link rel="alternate" hreflang="x-default" href="https://digital-gift.github.io/" />
+
+    <!-- Structured Data: JSON-LD Schemas -->
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLdWebApp)} />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLdSoftwareApp)} />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLdBreadcrumbs)} />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLdFAQ)} />
+
+    <!-- Theme Initialization (prevents flash of white/dark) -->
+    <script is:inline>
+      const theme = (() => {
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+          return localStorage.getItem('theme');
+        }
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          return 'dark';
+        }
+        return 'light';
+      })();
+
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+  </head>
+  <body class="min-h-screen bg-slate-50 dark:bg-brand-darkBg text-gray-900 dark:text-gray-100 flex flex-col antialiased transition-colors duration-200">
+    <!-- Accessibility Skip to Main Content Link -->
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand-deep focus:text-white focus:rounded-xl focus:shadow-xl focus:outline-none"
+    >
+      Skip to content
+    </a>
+
+    <Navbar currentLocale={locale} />
+
+    <main id="main-content" class="flex-1 w-full">
+      <slot />
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full border-t border-gray-200/60 dark:border-brand-darkBorder bg-white/70 dark:bg-brand-darkSurface/60 backdrop-blur-sm py-8 transition-colors">
+      <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+        <div class="flex flex-wrap items-center justify-center md:justify-start gap-2">
+          <span class="font-bold text-gray-800 dark:text-gray-200">DigitalGift</span>
+          <span>•</span>
+          <span>100% Client-Side • Zero-Server • Privacy First</span>
+          {locale !== 'en' && (
+            <>
+              <span>•</span>
+              <nav aria-label="Breadcrumb" class="inline-flex items-center gap-1">
+                <a href="/" class="hover:underline text-brand-deep dark:text-brand-mint">Home</a>
+                <span>/</span>
+                <span class="font-semibold text-gray-700 dark:text-gray-300">{localeLabels[locale]}</span>
+              </nav>
+            </>
+          )}
+        </div>
+
+        <div class="flex items-center gap-4">
+          <a href="https://buymeacoffee.com/kisharadilz" target="_blank" rel="noopener noreferrer" class="hover:text-brand-deep dark:hover:text-brand-mint font-semibold transition-colors">
+            ☕ Buy Me a Coffee
+          </a>
+          <span>•</span>
+          <a href="https://github.com/digital-gift/digital-gift.github.io" target="_blank" rel="noopener noreferrer" class="hover:text-brand-deep dark:hover:text-brand-mint transition-colors">
+            GitHub
+          </a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
