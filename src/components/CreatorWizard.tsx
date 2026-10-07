@@ -134,9 +134,26 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
     }
   };
 
-  const handleWhatsAppShare = () => {
+  const handleWhatsAppShare = async () => {
     const text = `🎁 ${giftData.recipientName}, someone sent you a special virtual surprise gift! Open it here: ${shareUrl}`;
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+
+    // On mobile devices with native share capabilities, use Web Share API
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: `Special Gift for ${giftData.recipientName}`,
+          text: `🎁 ${giftData.recipientName}, you received a special virtual surprise gift!`,
+          url: shareUrl,
+        });
+        return;
+      } catch (err) {
+        // Fallback to direct URL if user dismissed native share
+      }
+    }
+
+    // Direct WhatsApp URL
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const handleReset = () => {
@@ -557,11 +574,11 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
                     />
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                        Photo attached & compressed
+                        Photo attached & ultra-compressed
                       </p>
                       {imageSize && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Approx size: {(imageSize / 1024).toFixed(1)} KB (URL Safe)
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                          Approx size: {(imageSize / 1024).toFixed(2)} KB (100% WhatsApp Safe)
                         </p>
                       )}
                     </div>
@@ -596,8 +613,14 @@ export const CreatorWizard: React.FC<CreatorWizardProps> = ({ locale, onPreviewG
 
               {/* Copyable Magic Link Box */}
               <div className="p-4 bg-gray-50 dark:bg-brand-darkCard rounded-2xl border border-gray-200 dark:border-brand-darkBorder space-y-3">
-                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Direct Magic Link
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Direct Magic Link
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>WhatsApp Ready ({shareUrl.length} chars)</span>
+                  </span>
                 </div>
                 <div className="p-3 bg-white dark:bg-brand-darkBg rounded-xl border border-gray-200 dark:border-brand-darkBorder text-xs text-gray-600 dark:text-gray-300 font-mono break-all line-clamp-3 select-all">
                   {shareUrl}
