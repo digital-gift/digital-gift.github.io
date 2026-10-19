@@ -1,7 +1,7 @@
 # DigitalGift | 100% Client-Side Interactive Virtual Gift Maker
 
 > **Live Production URL:** [https://digital-gift.github.io](https://digital-gift.github.io)  
-> **Developer Support:** [Buy Me a Coffee (kisharadilz)](https://buymeacoffee.com/kisharadilz)  
+> **Developer Support:** [Support on Ko-fi (kishara)](https://ko-fi.com/kishara)  
 > **Repository:** [https://github.com/digital-gift/digital-gift.github.io](https://github.com/digital-gift/digital-gift.github.io)
 
 A privacy-first, zero-server web application built with **Astro 5 (SSG)**, **React 19 (Islands Architecture)**, and **Tailwind CSS**. Enables users to craft customized, animated virtual birthday and celebration gift boxes with confetti, music, animated stickers/memojis, and personal messages. The complete gift state is compressed directly into shareable URL hashes using **LZ-String**, requiring zero databases, zero cookies, zero user accounts, and zero backend servers.
